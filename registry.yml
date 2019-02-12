@@ -1,0 +1,65 @@
+---
+- name: Create registry volume
+  file:
+    path: /var/lib/docker/registry/
+    state: directory
+    owner: root
+    group: root
+  tags: 
+    - docker
+    - docker_registry
+
+- name: Start registry
+  docker_container:
+    name: registry
+    image: registry:2
+    restart_policy: always
+    env:
+      REGISTRY_STORAGE_DELETE_ENABLED: true
+    volumes:
+      - /var/lib/docker/registry/:/var/lib/registry
+    ports:
+      - 5000:5000
+  tags: 
+    - docker
+    - docker_registry
+
+- name: Publish docker dev script config
+  copy:
+    src: "{{ item }}"
+    dest: "/opt/appdata/www/{{ item }}"
+    owner: root
+    group: apache
+  with_items:
+     - start.sh
+     - configure-linux.sh
+     - configure-mac.sh
+     - configure-windows.sh
+  tags: 
+    - docker
+    - docker_registry
+
+- name: Publish docker-compose.yml
+  template:
+    src: "docker-compose.yml"
+    dest: "/opt/appdata/www/docker-compose-{{ item }}.yml"
+    owner: root
+    group: apache
+  with_items:
+    - be
+    - cz
+    - de
+    - es
+    - fr
+    - hu
+    - it
+    - nl
+    - pl
+    - pt
+    - ro
+    - ru
+    - se
+    - uk
+  tags:
+    - docker
+    - docker_registry
